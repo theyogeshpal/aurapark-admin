@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AdminAuthService } from '../../services/admin-auth.service';
@@ -21,6 +21,9 @@ import { AdminApiService } from '../../services/admin-api.service';
         </a>
         <a class="nav-link-custom" routerLink="/admin/park-vehicle" routerLinkActive="active" (click)="closeSidebar()">
           <i class='bx bxs-parking'></i> <span>Park Vehicle</span>
+        </a>
+        <a class="nav-link-custom" routerLink="/admin/prebookings" routerLinkActive="active" (click)="closeSidebar()">
+          <i class='bx bx-calendar-check'></i> <span>Pre-Bookings</span>
         </a>
         <a class="nav-link-custom" routerLink="/admin/park-history" routerLinkActive="active" (click)="closeSidebar()">
           <i class='bx bx-history'></i> <span>Parking History</span>
@@ -177,13 +180,14 @@ export class AdminLayoutComponent implements OnInit {
   notifications: any[] = [];
   unreadCount = 0;
 
-  constructor(public auth: AdminAuthService, private api: AdminApiService) {}
+  constructor(public auth: AdminAuthService, private api: AdminApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.api.getAdminNotifications().subscribe({
       next: (res) => {
         this.notifications = res.data || [];
         this.unreadCount = this.notifications.filter((n: any) => !n.isRead).length;
+        this.cdr.detectChanges();
       },
       error: (err) => console.error('Notification fetch failed:', err)
     });

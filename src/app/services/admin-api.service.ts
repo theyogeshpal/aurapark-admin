@@ -19,10 +19,13 @@ export class AdminApiService {
   updateMyParking(data: any) { return this.http.put<any>(`${BASE}/parkings/admin/my-parking`, data, this.ah); }
 
   // ── Daily Parking ─────────────────────────────────────
+  getPreBookings() { return this.http.get<any>(`${BASE}/daily-parking/prebookings`, this.ah); }
+  checkInVehicle(id: string) { return this.http.put<any>(`${BASE}/daily-parking/checkin/${id}`, {}, this.ah); }
   getActiveVehicles() { return this.http.get<any>(`${BASE}/daily-parking/active`, this.ah); }
   getParkingHistory() { return this.http.get<any>(`${BASE}/daily-parking/history`, this.ah); }
   parkVehicle(data: { vehiclenumber: string; ownername: string; type: string }) { return this.http.post<any>(`${BASE}/daily-parking/park`, data, this.ah); }
   exitVehicle(id: string) { return this.http.put<any>(`${BASE}/daily-parking/exit/${id}`, {}, this.ah); }
+  completePayment(id: string) { return this.http.put<any>(`${BASE}/daily-parking/payment/${id}`, {}, this.ah); }
   getReceipt(id: string) { return this.http.get<any>(`${BASE}/daily-parking/receipt/${id}`, this.ah); }
   deleteRecord(id: string) { return this.http.delete<any>(`${BASE}/daily-parking/${id}`, this.ah); }
 

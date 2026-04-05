@@ -10,6 +10,10 @@ import { AdminApiService } from '../../services/admin-api.service';
 <div class="container-fluid py-4">
   <div *ngIf="loading()" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
 
+  <div *ngIf="!loading() && errorMsg()" class="alert alert-danger rounded-4 p-4">
+    <i class="fa-solid fa-circle-exclamation me-2"></i>{{errorMsg()}}
+  </div>
+
   <ng-container *ngIf="!loading() && parking()">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <div>
@@ -86,9 +90,30 @@ import { AdminApiService } from '../../services/admin-api.service';
         <div class="park-img-wrapper mb-4">
           <img src="https://images.unsplash.com/photo-1506521781263-d8422e82f27a?w=600" class="img-fluid w-100" style="object-fit:cover;height:300px;border-radius:16px" alt="Parking">
         </div>
-        <div class="alert alert-info border-0 shadow-sm rounded-4 p-4">
+        <div class="alert alert-info border-0 shadow-sm rounded-4 p-4 mb-4">
           <h6 class="fw-bold"><i class="fa-solid fa-lightbulb me-2"></i> Quick Tip</h6>
           <p class="small m-0">Keep your hourly rates competitive for your area to increase daily occupancy.</p>
+        </div>
+
+        <!-- QR Code Card -->
+        <div class="detail-card">
+          <h5 class="section-title"><i class="fa-solid fa-qrcode me-2"></i> Payment QR Code</h5>
+          <div *ngIf="parking()!.qrCode" class="text-center mb-3">
+            <img [src]="parking()!.qrCode" style="width:160px;height:160px;object-fit:contain;border-radius:12px;border:2px solid #e2e8f0;" alt="QR Code">
+            <div class="text-muted small mt-2">Customers scan this to pay</div>
+          </div>
+          <div *ngIf="!parking()!.qrCode" class="text-center py-3 mb-3">
+            <i class="fa-solid fa-qrcode fs-1 text-muted d-block mb-2"></i>
+            <span class="text-muted small">No QR code uploaded yet</span>
+          </div>
+          <input #qrOnlyInput type="file" accept="image/*" style="display:none" (change)="onQrOnly($event)">
+          <button class="btn btn-outline-primary w-100" (click)="qrOnlyInput.click()" [disabled]="qrSaving()">
+            <span *ngIf="!qrSaving()"><i class="fa-solid fa-upload me-2"></i>{{parking()!.qrCode ? 'Change QR Code' : 'Upload QR Code'}}</span>
+            <span *ngIf="qrSaving()"><i class="fa-solid fa-spinner fa-spin me-2"></i>Saving...</span>
+          </button>
+          <div *ngIf="qrMsg()" class="alert alert-success border-0 rounded-3 small mt-2 mb-0 py-2">
+            <i class="fa-solid fa-circle-check me-1"></i>{{qrMsg()}}
+          </div>
         </div>
       </div>
     </div>
@@ -136,6 +161,20 @@ import { AdminApiService } from '../../services/admin-api.service';
             <label class="form-label small fw-semibold">Car Spaces</label>
             <input type="text" class="form-control" [(ngModel)]="editForm.carspace">
           </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Payment QR Code</label>
+            <div class="qr-upload-area" (click)="qrInput.click()">
+              <input #qrInput type="file" accept="image/*" style="display:none" (change)="onQrUpload($event)">
+              <div *ngIf="!editForm.qrCode" class="text-center py-3">
+                <i class="fa-solid fa-qrcode fs-2 text-muted mb-2 d-block"></i>
+                <span class="text-muted small">Click to upload QR code for payments</span>
+              </div>
+              <div *ngIf="editForm.qrCode" class="text-center py-2">
+                <img [src]="editForm.qrCode" style="max-height:120px;border-radius:8px">
+                <div class="text-muted small mt-1">Click to change</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="modal-footer bg-light">
@@ -159,6 +198,8 @@ import { AdminApiService } from '../../services/admin-api.service';
     .section-title { font-size:1.1rem; font-weight:700; color:#0d6efd; margin-bottom:20px; padding-bottom:10px; border-bottom:2px solid #eef2ff; display:flex; align-items:center; }
     .rate-badge { background:#ecfdf5; color:#059669; padding:4px 12px; border-radius:99px; font-weight:700; display:inline-block; }
     .park-img-wrapper { border-radius:16px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
+    .qr-upload-area { border:2px dashed #e2e8f0; border-radius:12px; cursor:pointer; transition:border-color 0.2s; }
+    .qr-upload-area:hover { border-color:#0d6efd; background:#f8faff; }
   `]
 })
 export class ManageParkingComponent implements OnInit {
@@ -166,6 +207,9 @@ export class ManageParkingComponent implements OnInit {
   loading = signal(true);
   saving = signal(false);
   saveMsg = signal('');
+  errorMsg = signal('');
+  qrSaving = signal(false);
+  qrMsg = signal('');
   editForm: any = {};
 
   constructor(private api: AdminApiService) {}
@@ -177,7 +221,10 @@ export class ManageParkingComponent implements OnInit {
         this.editForm = { ...res.data };
         this.loading.set(false);
       },
-      error: () => this.loading.set(false)
+      error: (err) => {
+        this.errorMsg.set(err.error?.message || 'Failed to load parking data.');
+        this.loading.set(false);
+      }
     });
   }
 
@@ -192,5 +239,34 @@ export class ManageParkingComponent implements OnInit {
       },
       error: () => this.saving.set(false)
     });
+  }
+
+  onQrUpload(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e: any) => { this.editForm.qrCode = e.target.result; };
+    reader.readAsDataURL(file);
+  }
+
+  onQrOnly(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const base64 = e.target.result;
+      this.qrSaving.set(true);
+      this.api.updateMyParking({ qrCode: base64 }).subscribe({
+        next: (res) => {
+          this.parking.update(p => ({ ...p, qrCode: base64 }));
+          this.editForm.qrCode = base64;
+          this.qrSaving.set(false);
+          this.qrMsg.set('QR code updated successfully!');
+          setTimeout(() => this.qrMsg.set(''), 3000);
+        },
+        error: () => this.qrSaving.set(false)
+      });
+    };
+    reader.readAsDataURL(file);
   }
 }

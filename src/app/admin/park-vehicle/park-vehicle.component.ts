@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminApiService } from '../../services/admin-api.service';
@@ -14,14 +14,12 @@ import { AdminApiService } from '../../services/admin-api.service';
         <div class="bg-primary bg-opacity-10 p-2 rounded-3 me-3"><i class="bi bi-plus-circle-fill text-primary fs-4"></i></div>
         <h4 class="mb-0 fw-bold">Walk-in Entry</h4>
       </div>
-
       <div *ngIf="successMsg()" class="alert alert-success border-0 shadow-sm d-flex align-items-center">
         <i class="bi bi-check-circle-fill me-2"></i><div>Vehicle <strong>{{successMsg()}}</strong> Logged!</div>
       </div>
       <div *ngIf="errorMsg()" class="alert alert-danger border-0 shadow-sm small">
         <i class="bi bi-x-circle-fill me-2"></i>{{errorMsg()}}
       </div>
-
       <form (ngSubmit)="saveParking()">
         <div class="mb-3">
           <label class="form-label">Owner Name</label>
@@ -66,9 +64,7 @@ import { AdminApiService } from '../../services/admin-api.service';
           <button class="btn btn-sm btn-outline-secondary" (click)="loadActive()"><i class="bi bi-arrow-clockwise"></i></button>
         </div>
       </div>
-
       <div *ngIf="loading()" class="text-center py-4"><div class="spinner-border text-primary"></div></div>
-
       <div class="table-responsive" *ngIf="!loading()">
         <table class="table">
           <thead>
@@ -76,7 +72,6 @@ import { AdminApiService } from '../../services/admin-api.service';
               <th>Vehicle Details</th>
               <th>Source</th>
               <th>In Time</th>
-              <th>Out Time</th>
               <th>Amount</th>
               <th class="text-end">Action</th>
             </tr>
@@ -95,29 +90,20 @@ import { AdminApiService } from '../../services/admin-api.service';
                 </div>
               </td>
               <td>
-                <span *ngIf="row.source === 'online'" class="source-badge online">
-                  <i class="fa-solid fa-globe me-1"></i>Online
-                </span>
-                <span *ngIf="row.source !== 'online'" class="source-badge walkin">
-                  <i class="fa-solid fa-person-walking me-1"></i>Walk-in
-                </span>
+                <span *ngIf="row.source === 'online'" class="source-badge online"><i class="fa-solid fa-globe me-1"></i>Online</span>
+                <span *ngIf="row.source !== 'online'" class="source-badge walkin"><i class="fa-solid fa-person-walking me-1"></i>Walk-in</span>
               </td>
               <td><small class="fw-semibold text-secondary">{{row.intime}}</small></td>
-              <td>
-                <small *ngIf="row.outtime === '-'" class="text-warning fw-semibold">Active</small>
-                <small *ngIf="row.outtime !== '-'" class="text-muted">{{row.outtime}}</small>
-              </td>
               <td><small class="fw-semibold text-success">{{row.amount ? '₹' + row.amount : '—'}}</small></td>
               <td class="text-end">
-                <button *ngIf="row.outtime === '-'" class="btn btn-outline-danger btn-sm px-3 rounded-pill" (click)="exitVehicle(row._id)" [disabled]="exiting() === row._id">
+                <button class="btn btn-outline-danger btn-sm px-3 rounded-pill" (click)="openCheckout(row)" [disabled]="exiting() === row._id">
                   <span *ngIf="exiting() !== row._id">Checkout</span>
                   <span *ngIf="exiting() === row._id"><i class="fa-solid fa-spinner fa-spin"></i></span>
                 </button>
-                <span *ngIf="row.outtime !== '-'" class="badge bg-success">Done</span>
               </td>
             </tr>
             <tr *ngIf="activeVehicles().length === 0">
-              <td colspan="6" class="text-center py-5 text-muted">
+              <td colspan="5" class="text-center py-5 text-muted">
                 <i class="bi bi-info-circle d-block fs-2 mb-2"></i>No vehicles currently in the lot.
               </td>
             </tr>
@@ -125,6 +111,87 @@ import { AdminApiService } from '../../services/admin-api.service';
         </table>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div class="modal-backdrop-custom" *ngIf="checkoutRecord()" (click)="closeModal()"></div>
+<div class="checkout-modal" *ngIf="checkoutRecord()">
+  <div class="modal-inner" #billEl>
+    <!-- Bill Header -->
+    <div class="bill-header">
+      <div class="bill-brand">
+        <span class="bill-logo">🅿</span>
+        <div>
+          <div class="bill-title">AuraPark</div>
+          <div class="bill-sub">Parking Bill</div>
+        </div>
+      </div>
+      <div class="text-end">
+        <div class="bill-date-label">Date</div>
+        <div class="bill-date-val">{{checkoutRecord()!.date}}</div>
+      </div>
+    </div>
+
+    <!-- Vehicle Info -->
+    <div class="bill-section">
+      <div class="bill-row">
+        <span class="bill-key">Vehicle No.</span>
+        <span class="bill-val fw-bold font-monospace">{{checkoutRecord()!.vehiclenumber}}</span>
+      </div>
+      <div class="bill-row">
+        <span class="bill-key">Owner Name</span>
+        <span class="bill-val">{{checkoutRecord()!.ownername}}</span>
+      </div>
+      <div class="bill-row">
+        <span class="bill-key">Vehicle Type</span>
+        <span class="bill-val">{{checkoutRecord()!.type === '2W' ? 'Two Wheeler' : 'Four Wheeler'}}</span>
+      </div>
+      <div class="bill-row">
+        <span class="bill-key">Check-in</span>
+        <span class="bill-val text-success fw-bold">{{checkoutRecord()!.intime}}</span>
+      </div>
+      <div class="bill-row">
+        <span class="bill-key">Check-out</span>
+        <span class="bill-val text-danger fw-bold">{{checkoutTime()}}</span>
+      </div>
+      <div class="bill-row">
+        <span class="bill-key">Duration</span>
+        <span class="bill-val">{{checkoutDuration()}} hr{{checkoutDuration() > 1 ? 's' : ''}}</span>
+      </div>
+    </div>
+
+    <div class="bill-divider dashed"></div>
+
+    <!-- Amount -->
+    <div class="bill-amount-row">
+      <span>Total Amount</span>
+      <span class="bill-amount">₹{{checkoutAmount()}}</span>
+    </div>
+
+    <!-- Payment Status -->
+    <div class="bill-payment-status" [class.paid]="paymentDone()">
+      <i class="fa-solid" [class.fa-clock]="!paymentDone()" [class.fa-circle-check]="paymentDone()"></i>
+      {{paymentDone() ? 'Payment Received' : 'Payment Pending'}}
+    </div>
+
+    <!-- QR Code -->
+    <div class="bill-qr-section" *ngIf="parkingQr()">
+      <div class="qr-label">Scan to Pay · ₹{{checkoutAmount()}}</div>
+      <img [src]="parkingQr()" class="qr-img">
+      <div *ngIf="paymentDone()" class="qr-paid-badge"><i class="fa-solid fa-circle-check me-1"></i>Payment Received</div>
+    </div>
+  </div>
+
+  <!-- Action Buttons (outside bill for no-print) -->
+  <div class="modal-actions">
+    <button class="btn btn-secondary" (click)="closeModal()">Close</button>
+    <button class="btn btn-success px-4" *ngIf="!paymentDone()" (click)="confirmPayment()">
+      <i class="fa-solid fa-check me-2"></i>Payment Received
+    </button>
+    <button class="btn btn-primary px-4" *ngIf="paymentDone()" (click)="downloadBill()">
+      <i class="fa-solid fa-download me-2"></i>Download Bill
+    </button>
   </div>
 </div>
   `,
@@ -140,9 +207,42 @@ import { AdminApiService } from '../../services/admin-api.service';
     .source-badge.online { background:#eff6ff; color:#1d4ed8; }
     .source-badge.walkin { background:#f0fdf4; color:#15803d; }
     .form-label { font-weight:600; color:#495057; font-size:0.9rem; }
+
+    /* Modal */
+    .modal-backdrop-custom { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1040; }
+    .checkout-modal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1050; width:420px; max-width:95vw; max-height:90vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+    .modal-inner { background:white; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; background:white; border-radius:14px; padding:14px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+
+    /* Bill */
+    .bill-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px 16px; background:linear-gradient(135deg,#0f172a,#1e293b); color:white; }
+    .bill-brand { display:flex; align-items:center; gap:10px; }
+    .bill-logo { font-size:1.8rem; }
+    .bill-title { font-size:1.1rem; font-weight:800; }
+    .bill-sub { font-size:0.7rem; color:rgba(255,255,255,0.5); }
+    .bill-date-label { font-size:0.65rem; color:rgba(255,255,255,0.5); text-transform:uppercase; }
+    .bill-date-val { font-size:0.85rem; font-weight:700; color:#10b981; }
+    .bill-section { padding:16px 24px; }
+    .bill-row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid #f8fafc; font-size:0.88rem; }
+    .bill-row:last-child { border-bottom:none; }
+    .bill-key { color:#94a3b8; }
+    .bill-val { color:#1e293b; }
+    .bill-divider { height:1px; background:#f1f5f9; margin:0 24px; }
+    .bill-divider.dashed { background:none; border-top:2px dashed #e2e8f0; }
+    .bill-amount-row { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; }
+    .bill-amount-row span:first-child { font-size:1rem; font-weight:700; color:#1e293b; }
+    .bill-amount { font-size:1.8rem; font-weight:800; color:#10b981; }
+    .bill-payment-status { margin:0 24px 16px; padding:10px 16px; border-radius:10px; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:8px; background:#fef9c3; color:#854d0e; }
+    .bill-payment-status.paid { background:#dcfce7; color:#166534; }
+    .bill-qr-section { padding:16px 24px 20px; text-align:center; border-top:1px solid #f1f5f9; }
+    .qr-label { font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+    .qr-img { width:160px; height:160px; object-fit:contain; border-radius:12px; border:2px solid #e2e8f0; }
+    .qr-paid-badge { margin-top:10px; background:#dcfce7; color:#166534; padding:6px 16px; border-radius:20px; font-size:0.82rem; font-weight:700; display:inline-flex; align-items:center; }
   `]
 })
 export class ParkVehicleComponent implements OnInit {
+  @ViewChild('billEl') billEl!: ElementRef;
+
   form = { ownername: '', vehiclenumber: '', type: '2W' };
   activeVehicles = signal<any[]>([]);
   loading = signal(true);
@@ -150,10 +250,19 @@ export class ParkVehicleComponent implements OnInit {
   exiting = signal<string | null>(null);
   successMsg = signal('');
   errorMsg = signal('');
+  checkoutRecord = signal<any>(null);
+  paymentDone = signal(false);
+  parkingQr = signal('');
+  checkoutTime = signal('');
+  checkoutAmount = signal(0);
+  checkoutDuration = signal(0);
 
   constructor(private api: AdminApiService) {}
 
-  ngOnInit() { this.loadActive(); }
+  ngOnInit() {
+    this.loadActive();
+    this.api.getMyParking().subscribe({ next: (res) => this.parkingQr.set(res.data?.qrCode || '') });
+  }
 
   loadActive() {
     this.loading.set(true);
@@ -177,14 +286,47 @@ export class ParkVehicleComponent implements OnInit {
     });
   }
 
-  exitVehicle(id: string) {
-    this.exiting.set(id);
-    this.api.exitVehicle(id).subscribe({
-      next: (res) => {
-        this.activeVehicles.update(v => v.map(x => x._id === id ? res.data : x));
-        this.exiting.set(null);
-      },
-      error: () => this.exiting.set(null)
+  openCheckout(row: any) {
+    // Just open modal with preview — do NOT call exit API yet
+    const now = new Date();
+    const [inH, inM] = row.intime.split(':').map(Number);
+    const outH = now.getHours(), outM = now.getMinutes();
+    const dur = Math.max(1, Math.ceil(((outH * 60 + outM) - (inH * 60 + inM)) / 60));
+    this.api.getMyParking().subscribe({ next: (res) => {
+      const rate = parseInt(res.data?.hourrate || 20);
+      this.checkoutTime.set(`${String(outH).padStart(2,'0')}:${String(outM).padStart(2,'0')}`);
+      this.checkoutDuration.set(dur);
+      this.checkoutAmount.set(dur * rate);
+      this.paymentDone.set(false);
+      this.checkoutRecord.set({ ...row, _pendingExit: true });
+    }});
+  }
+
+  confirmPayment() {
+    if (!confirm('Confirm that payment of ₹' + this.checkoutAmount() + ' has been received?')) return;
+    const rec = this.checkoutRecord();
+    // First exit the vehicle, then mark payment complete
+    this.api.exitVehicle(rec._id).subscribe({
+      next: (exitRes) => {
+        this.activeVehicles.update(v => v.filter(x => x._id !== rec._id));
+        this.api.completePayment(exitRes.data._id).subscribe({
+          next: (payRes) => {
+            this.paymentDone.set(true);
+            this.checkoutRecord.set(payRes.data);
+          }
+        });
+      }
     });
   }
+
+  async downloadBill() {
+    const html2canvas = (await import('html2canvas')).default;
+    const canvas = await html2canvas(this.billEl.nativeElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false });
+    const link = document.createElement('a');
+    link.download = `AuraPark-Bill-${this.checkoutRecord()!.vehiclenumber}-${this.checkoutRecord()!.date}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  closeModal() { this.checkoutRecord.set(null); this.paymentDone.set(false); }
 }
