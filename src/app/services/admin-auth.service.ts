@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 
-const BASE = 'http://localhost:5000/api/auth';
+const BASE = 'https://aurapark-backend.onrender.com/api/auth';
 
 @Injectable({ providedIn: 'root' })
 export class AdminAuthService {
