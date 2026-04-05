@@ -51,4 +51,10 @@ export class AdminApiService {
   addUser(data: any) { return this.http.post<any>(`${BASE}/superadmin/users`, data, this.sh); }
   updateUser(id: string, data: any) { return this.http.put<any>(`${BASE}/superadmin/users/${id}`, data, this.sh); }
   deleteUser(id: string) { return this.http.delete<any>(`${BASE}/superadmin/users/${id}`, this.sh); }
+
+  // ── FAQs ──────────────────────────────────────────────
+  getFaqs() { return this.http.get<any>(`${BASE}/faqs/admin`, this.sh); }
+  createFaq(data: any) { return this.http.post<any>(`${BASE}/faqs`, data, this.sh); }
+  updateFaq(id: string, data: any) { return this.http.put<any>(`${BASE}/faqs/${id}`, data, this.sh); }
+  deleteFaq(id: string) { return this.http.delete<any>(`${BASE}/faqs/${id}`, this.sh); }
 }

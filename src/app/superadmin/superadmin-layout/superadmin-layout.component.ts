@@ -8,7 +8,7 @@ import { AdminAuthService } from '../../services/admin-auth.service';
   template: `
 <nav class="sidebar sa-sidebar shadow" [class.show]="sidebarOpen" id="sidebar">
   <div class="sidebar-brand">
-    <span class="fw-bold text-white fs-5">🅿 Aura Park</span>
+    <img src="https://aurapark-v2.vercel.app/Assets/images/Horizontal-logo-exact-ratio-removebg-preview.png" style="height:61px;object-fit:contain;filter:brightness(0) invert(1);" alt="AuraPark">
   </div>
   <div class="mt-4">
     <small class="text-uppercase px-4 text-warning fw-bold" style="font-size:0.7rem">Main Menu</small>
@@ -43,12 +43,22 @@ import { AdminAuthService } from '../../services/admin-auth.service';
           <i class="fa-solid fa-bell me-2"></i> Send Notification
         </a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" routerLink="/superadmin/faqs" routerLinkActive="active" (click)="closeSidebar()">
+          <i class="fa-solid fa-circle-question me-2"></i> Manage FAQs
+        </a>
+      </li>
     </ul>
     <small class="text-uppercase px-4 text-warning fw-bold mt-4 d-block" style="font-size:0.7rem">Account</small>
     <ul class="nav flex-column mt-2">
       <li class="nav-item">
         <a class="nav-link text-danger" (click)="auth.saLogout()" style="cursor:pointer">
           <i class="fa-solid fa-right-from-bracket me-2"></i> Logout
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://aurapark-v2.vercel.app/" target="_blank">
+          <i class="fa-solid fa-globe me-2"></i> View Website
         </a>
       </li>
     </ul>

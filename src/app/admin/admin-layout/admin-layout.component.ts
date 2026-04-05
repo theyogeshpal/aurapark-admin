@@ -10,7 +10,7 @@ import { AdminApiService } from '../../services/admin-api.service';
   template: `
     <aside class="sidebar admin-sidebar" [class.show]="sidebarOpen" id="sidebar">
       <div class="sidebar-logo">
-        <span class="fw-bold fs-4 text-primary">🅿 Aura Park</span>
+        <img src="https://aurapark-v2.vercel.app/Assets/images/Horizontal-logo-exact-ratio-removebg-preview.png" style="height:61px;object-fit:contain;" alt="AuraPark">
       </div>
       <nav class="nav-list">
         <a class="nav-link-custom" routerLink="/admin/dashboard" routerLinkActive="active" (click)="closeSidebar()">
@@ -27,6 +27,12 @@ import { AdminApiService } from '../../services/admin-api.service';
         </a>
         <a class="nav-link-custom" routerLink="/admin/park-history" routerLinkActive="active" (click)="closeSidebar()">
           <i class='bx bx-history'></i> <span>Parking History</span>
+        </a>
+        <a class="nav-link-custom" href="https://aurapark-v2.vercel.app/" target="_blank">
+          <i class='bx bx-globe'></i> <span>View Website</span>
+        </a>
+        <a class="nav-link-custom text-danger" (click)="auth.adminLogout()" style="cursor:pointer" (click)="closeSidebar()">
+          <i class='bx bx-log-out-circle'></i> <span>Logout</span>
         </a>
       </nav>
     </aside>

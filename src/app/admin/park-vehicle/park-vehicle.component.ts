@@ -176,10 +176,14 @@ import { AdminApiService } from '../../services/admin-api.service';
     </div>
 
     <!-- QR Code -->
-    <div class="bill-qr-section" *ngIf="parkingQr()">
+    <div class="bill-qr-section" *ngIf="generatedQr()">
       <div class="qr-label">Scan to Pay · ₹{{checkoutAmount()}}</div>
-      <img [src]="parkingQr()" class="qr-img">
+      <img [src]="generatedQr()" class="qr-img">
+      <div class="qr-upi">{{parkingUpi()}}</div>
       <div *ngIf="paymentDone()" class="qr-paid-badge"><i class="fa-solid fa-circle-check me-1"></i>Payment Received</div>
+    </div>
+    <div class="bill-qr-section" *ngIf="!generatedQr()">
+      <div class="text-muted small"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>No UPI ID configured. Add it in Manage Parking.</div>
     </div>
   </div>
 
@@ -210,9 +214,13 @@ import { AdminApiService } from '../../services/admin-api.service';
 
     /* Modal */
     .modal-backdrop-custom { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1040; }
-    .checkout-modal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1050; width:420px; max-width:95vw; max-height:90vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
-    .modal-inner { background:white; border-radius:20px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
-    .modal-actions { display:flex; gap:10px; justify-content:flex-end; background:white; border-radius:14px; padding:14px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.1); }
+    .checkout-modal { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:1050; width:420px; max-width:95vw; max-height:92vh; overflow-y:auto; display:flex; flex-direction:column; gap:12px; scrollbar-width:thin; scrollbar-color:#cbd5e1 transparent; }
+    .checkout-modal::-webkit-scrollbar { width:4px; }
+    .checkout-modal::-webkit-scrollbar-track { background:transparent; }
+    .checkout-modal::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
+    .checkout-modal::-webkit-scrollbar-thumb:hover { background:#94a3b8; }
+    .modal-inner { background:white; border-radius:20px; overflow:visible; box-shadow:0 20px 60px rgba(0,0,0,0.2); }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; background:white; border-radius:14px; padding:14px 16px; box-shadow:0 4px 20px rgba(0,0,0,0.1); position:sticky; bottom:0; }
 
     /* Bill */
     .bill-header { display:flex; justify-content:space-between; align-items:center; padding:20px 24px 16px; background:linear-gradient(135deg,#0f172a,#1e293b); color:white; }
@@ -234,10 +242,11 @@ import { AdminApiService } from '../../services/admin-api.service';
     .bill-amount { font-size:1.8rem; font-weight:800; color:#10b981; }
     .bill-payment-status { margin:0 24px 16px; padding:10px 16px; border-radius:10px; font-size:0.85rem; font-weight:700; display:flex; align-items:center; gap:8px; background:#fef9c3; color:#854d0e; }
     .bill-payment-status.paid { background:#dcfce7; color:#166534; }
-    .bill-qr-section { padding:16px 24px 20px; text-align:center; border-top:1px solid #f1f5f9; }
-    .qr-label { font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
-    .qr-img { width:160px; height:160px; object-fit:contain; border-radius:12px; border:2px solid #e2e8f0; }
-    .qr-paid-badge { margin-top:10px; background:#dcfce7; color:#166534; padding:6px 16px; border-radius:20px; font-size:0.82rem; font-weight:700; display:inline-flex; align-items:center; }
+    .bill-qr-section { padding:12px 24px 16px; text-align:center; border-top:1px solid #f1f5f9; }
+    .qr-label { font-size:0.75rem; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+    .qr-img { width:240px; height:240px; object-fit:contain; border-radius:12px; border:2px solid #e2e8f0; }
+    .qr-paid-badge { margin-top:8px; background:#dcfce7; color:#166534; padding:6px 16px; border-radius:20px; font-size:0.82rem; font-weight:700; display:inline-flex; align-items:center; }
+    .qr-upi { font-size:0.8rem; color:#64748b; font-weight:600; margin-top:6px; font-family:monospace; }
   `]
 })
 export class ParkVehicleComponent implements OnInit {
@@ -252,7 +261,10 @@ export class ParkVehicleComponent implements OnInit {
   errorMsg = signal('');
   checkoutRecord = signal<any>(null);
   paymentDone = signal(false);
-  parkingQr = signal('');
+  parkingUpi = signal('');
+  parkingUpiName = signal('');
+  parkingRate = signal('20');
+  generatedQr = signal('');
   checkoutTime = signal('');
   checkoutAmount = signal(0);
   checkoutDuration = signal(0);
@@ -261,7 +273,13 @@ export class ParkVehicleComponent implements OnInit {
 
   ngOnInit() {
     this.loadActive();
-    this.api.getMyParking().subscribe({ next: (res) => this.parkingQr.set(res.data?.qrCode || '') });
+    this.api.getMyParking().subscribe({
+      next: (res) => {
+        this.parkingUpi.set(res.data?.upiId || '');
+        this.parkingUpiName.set(res.data?.upiName || res.data?.parkingname || 'AuraPark');
+        this.parkingRate.set(res.data?.hourrate || '20');
+      }
+    });
   }
 
   loadActive() {
@@ -286,20 +304,27 @@ export class ParkVehicleComponent implements OnInit {
     });
   }
 
-  openCheckout(row: any) {
-    // Just open modal with preview — do NOT call exit API yet
+  async openCheckout(row: any) {
     const now = new Date();
     const [inH, inM] = row.intime.split(':').map(Number);
     const outH = now.getHours(), outM = now.getMinutes();
     const dur = Math.max(1, Math.ceil(((outH * 60 + outM) - (inH * 60 + inM)) / 60));
-    this.api.getMyParking().subscribe({ next: (res) => {
-      const rate = parseInt(res.data?.hourrate || 20);
-      this.checkoutTime.set(`${String(outH).padStart(2,'0')}:${String(outM).padStart(2,'0')}`);
-      this.checkoutDuration.set(dur);
-      this.checkoutAmount.set(dur * rate);
-      this.paymentDone.set(false);
-      this.checkoutRecord.set({ ...row, _pendingExit: true });
-    }});
+    const rate = parseInt(this.parkingRate() || '20');
+    const amount = dur * rate;
+    this.checkoutTime.set(`${String(outH).padStart(2,'0')}:${String(outM).padStart(2,'0')}`);
+    this.checkoutDuration.set(dur);
+    this.checkoutAmount.set(amount);
+    this.paymentDone.set(false);
+    this.checkoutRecord.set({ ...row, _pendingExit: true });
+    // Generate UPI QR
+    if (this.parkingUpi()) {
+      const upiUrl = `upi://pay?pa=${this.parkingUpi()}&pn=${encodeURIComponent(this.parkingUpiName())}&am=${amount}&cu=INR&tn=${encodeURIComponent('Parking Fee - ' + row.vehiclenumber)}`;
+      const QRCode = (await import('qrcode'));
+      const qrDataUrl = await QRCode.toDataURL(upiUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } });
+      this.generatedQr.set(qrDataUrl);
+    } else {
+      this.generatedQr.set('');
+    }
   }
 
   confirmPayment() {

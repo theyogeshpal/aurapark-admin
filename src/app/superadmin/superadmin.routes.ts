@@ -15,6 +15,7 @@ export const superadminRoutes: Routes = [
       { path: 'contact-form', loadComponent: () => import('./contact-form/contact-form.component').then(m => m.ContactFormComponent) },
       { path: 'users', loadComponent: () => import('./users/users.component').then(m => m.UsersComponent) },
       { path: 'notifications', loadComponent: () => import('./notifications/notifications.component').then(m => m.NotificationsComponent) },
+      { path: 'faqs', loadComponent: () => import('./faqs/faqs.component').then(m => m.FaqsComponent) },
     ]
   },
   { path: 'login', loadComponent: () => import('./login/sa-login.component').then(m => m.SaLoginComponent) }
