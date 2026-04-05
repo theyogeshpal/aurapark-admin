@@ -1,0 +1,22 @@
+{
+  "name": "AuraPark Admin",
+  "short_name": "AuraPark",
+  "description": "AuraPark Parking Management Admin Panel",
+  "theme_color": "#0d6efd",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "https://aurapark-v2.vercel.app/Assets/images/Favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://aurapark-v2.vercel.app/Assets/images/Favicon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

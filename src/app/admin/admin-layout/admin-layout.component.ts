@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, HostListener } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AdminAuthService } from '../../services/admin-auth.service';
@@ -33,6 +33,9 @@ import { AdminApiService } from '../../services/admin-api.service';
         </a>
         <a class="nav-link-custom text-danger" (click)="auth.adminLogout()" style="cursor:pointer" (click)="closeSidebar()">
           <i class='bx bx-log-out-circle'></i> <span>Logout</span>
+        </a>
+        <a class="nav-link-custom nav-install" *ngIf="showInstall" (click)="installPwa()" style="cursor:pointer">
+          <i class='bx bx-download'></i> <span>Install App</span>
         </a>
       </nav>
     </aside>
@@ -154,6 +157,8 @@ import { AdminApiService } from '../../services/admin-api.service';
     .nav-link-custom i { font-size: 20px; margin-right: 12px; }
     .nav-link-custom:hover { background-color: #f1f5f9; color: #0d6efd; }
     .nav-link-custom.active { background-color: #0d6efd; color: white !important; box-shadow: 0 4px 12px rgba(13,110,253,0.25); }
+    .nav-install { background: linear-gradient(135deg,#10b981,#059669) !important; color: white !important; margin-top: 8px; border-radius: 12px; }
+    .nav-install:hover { opacity: 0.9; transform: translateY(-1px); }
     .search-wrapper { position: relative; max-width: 350px; width: 100%; }
     .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
     .search-input { padding: 10px 15px 10px 45px; border-radius: 10px; border: 1px solid #e2e8f0; width: 100%; font-size: 0.85rem; }
@@ -185,8 +190,33 @@ export class AdminLayoutComponent implements OnInit {
   sidebarOpen = false;
   notifications: any[] = [];
   unreadCount = 0;
+  showInstall = false;
+  private deferredPrompt: any = null;
 
   constructor(public auth: AdminAuthService, private api: AdminApiService, private cdr: ChangeDetectorRef) {}
+
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  onBeforeInstallPrompt(e: any) {
+    e.preventDefault();
+    this.deferredPrompt = e;
+    this.showInstall = true;
+    this.cdr.detectChanges();
+  }
+
+  @HostListener('window:appinstalled')
+  onAppInstalled() {
+    this.showInstall = false;
+    this.deferredPrompt = null;
+  }
+
+  installPwa() {
+    if (!this.deferredPrompt) return;
+    this.deferredPrompt.prompt();
+    this.deferredPrompt.userChoice.then(() => {
+      this.deferredPrompt = null;
+      this.showInstall = false;
+    });
+  }
 
   ngOnInit() {
     this.api.getAdminNotifications().subscribe({
