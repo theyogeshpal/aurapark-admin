@@ -182,7 +182,11 @@ import { AdminApiService } from '../../services/admin-api.service';
       <div class="qr-upi">{{parkingUpi()}}</div>
       <div *ngIf="paymentDone()" class="qr-paid-badge"><i class="fa-solid fa-circle-check me-1"></i>Payment Received</div>
     </div>
-    <div class="bill-qr-section" *ngIf="!generatedQr()">
+    <div class="bill-qr-section" *ngIf="!generatedQr() && qrLoading()">
+      <div class="spinner-border text-primary" style="width:2rem;height:2rem"></div>
+      <div class="text-muted small mt-2">Generating QR...</div>
+    </div>
+    <div class="bill-qr-section" *ngIf="!generatedQr() && !qrLoading()">
       <div class="text-muted small"><i class="fa-solid fa-triangle-exclamation me-1 text-warning"></i>No UPI ID configured. Add it in Manage Parking.</div>
     </div>
   </div>
@@ -265,6 +269,7 @@ export class ParkVehicleComponent implements OnInit {
   parkingUpiName = signal('');
   parkingRate = signal('20');
   generatedQr = signal('');
+  qrLoading = signal(false);
   checkoutTime = signal('');
   checkoutAmount = signal(0);
   checkoutDuration = signal(0);
@@ -314,6 +319,7 @@ export class ParkVehicleComponent implements OnInit {
     this.paymentDone.set(false);
     this.checkoutRecord.set({ ...row, _pendingExit: true });
     this.generatedQr.set('');
+    this.qrLoading.set(true);
 
     // Always fetch fresh parking data to get latest UPI
     this.api.getMyParking().subscribe({
@@ -328,11 +334,19 @@ export class ParkVehicleComponent implements OnInit {
         this.checkoutAmount.set(amount);
         if (upi) {
           const upiUrl = `upi://pay?pa=${upi}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Parking Fee - ' + row.vehiclenumber)}`;
-          const QRCode = (await import('qrcode'));
-          const qrDataUrl = await QRCode.toDataURL(upiUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } });
-          this.generatedQr.set(qrDataUrl);
+          try {
+            const QRCode = await import('qrcode');
+            const qr = QRCode.default || QRCode;
+            const qrDataUrl = await qr.toDataURL(upiUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } });
+            this.generatedQr.set(qrDataUrl);
+          } catch(e) {
+            console.error('QR generation failed:', e);
+            this.generatedQr.set('');
+          }
         }
-      }
+        this.qrLoading.set(false);
+      },
+      error: () => this.qrLoading.set(false)
     });
   }
 
