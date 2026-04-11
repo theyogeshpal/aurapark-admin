@@ -15,7 +15,7 @@ import { AdminApiService } from '../../services/admin-api.service';
   <div *ngIf="loading()" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
 
   <div class="main-card" *ngIf="!loading()">
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
       <table class="table align-middle">
         <thead>
           <tr>
@@ -52,8 +52,8 @@ import { AdminApiService } from '../../services/admin-api.service';
             </td>
             <td class="text-center">
               <div class="btn-group shadow-sm">
-                <a class="btn btn-white btn-action border" [href]="'tel:'+row.mobile" title="Call"><i class="fa-solid fa-phone text-primary"></i></a>
-                <button class="btn btn-white btn-action border text-danger" (click)="deleteParking(row._id)" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                <a class="btn btn-white btn-action border" [href]="'tel:'+row.mobile"><i class="fa-solid fa-phone text-primary"></i></a>
+                <button class="btn btn-white btn-action border text-danger" (click)="deleteParking(row._id)"><i class="fa-solid fa-trash"></i></button>
               </div>
             </td>
           </tr>
@@ -62,6 +62,26 @@ import { AdminApiService } from '../../services/admin-api.service';
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-md-none p-3">
+      <div class="p-mobile-card" *ngFor="let row of parkings()">
+        <div class="fw-bold text-dark mb-1" style="font-size:1rem">{{row.parkingname}}</div>
+        <div class="text-muted small mb-2">{{row.ownername}} &nbsp;&middot;&nbsp; {{row.mobile}}</div>
+        <div class="d-flex gap-2 mb-2">
+          <span class="capacity-tag bg-bike"><i class="fa-solid fa-motorcycle"></i> {{row.bikespace}}</span>
+          <span class="capacity-tag bg-car"><i class="fa-solid fa-car"></i> {{row.carspace}}</span>
+          <span class="capacity-tag bg-light border text-dark">₹{{row.hourrate}}/hr</span>
+        </div>
+        <div class="text-muted small mb-1"><i class="fa-solid fa-map-pin text-danger me-1"></i>{{row.city}}, {{row.state}}</div>
+        <div class="d-flex gap-2 mt-3">
+          <a class="btn btn-sm btn-outline-primary flex-grow-1" [href]="row.map" target="_blank"><i class="fa-solid fa-map me-1"></i>Maps</a>
+          <a class="btn btn-sm btn-outline-success flex-grow-1" [href]="'tel:'+row.mobile"><i class="fa-solid fa-phone me-1"></i>Call</a>
+          <button class="btn btn-sm btn-outline-danger" (click)="deleteParking(row._id)"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+      <div *ngIf="parkings().length === 0" class="text-center text-muted py-4">No verified parkings found.</div>
     </div>
   </div>
 </div>
@@ -75,6 +95,7 @@ import { AdminApiService } from '../../services/admin-api.service';
     .bg-car { background-color:#fff3e0; color:#e65100; }
     .sr-text { font-family:'Arial Black',sans-serif; color:#eaecf4; font-size:2.5rem; line-height:1; }
     .btn-action { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; }
+    .p-mobile-card { background:white; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
   `]
 })
 export class ParkingsComponent implements OnInit {

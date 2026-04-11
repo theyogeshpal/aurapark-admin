@@ -23,7 +23,7 @@ import { AdminApiService } from '../../services/admin-api.service';
 
         <div *ngIf="loading()" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
 
-        <div class="table-responsive px-2" *ngIf="!loading()">
+        <div class="table-responsive px-2 d-none d-md-block" *ngIf="!loading()">
           <table class="table table-custom mb-0">
             <thead>
               <tr>
@@ -65,9 +65,7 @@ import { AdminApiService } from '../../services/admin-api.service';
                 <td><span class="amount-text">₹{{row.amount ?? '0'}}</span></td>
                 <td class="text-end">
                   <div class="d-flex justify-content-end gap-1">
-                    <button *ngIf="row.outtime !== '-'" class="btn btn-sm btn-outline-success" title="Download Bill" (click)="downloadBill(row)">
-                      <i class="fa-solid fa-download"></i>
-                    </button>
+                    <button *ngIf="row.outtime !== '-'" class="btn btn-sm btn-outline-success" title="Download Bill" (click)="downloadBill(row)"><i class="fa-solid fa-download"></i></button>
                     <button *ngIf="row.outtime === '-'" class="btn btn-sm btn-danger" title="Exit" (click)="exitVehicle(row._id)"><i class="fa-solid fa-arrow-right-from-bracket"></i></button>
                     <button class="btn btn-sm btn-outline-danger" title="Delete" (click)="deleteRecord(row._id)"><i class="fa-solid fa-trash"></i></button>
                   </div>
@@ -75,6 +73,40 @@ import { AdminApiService } from '../../services/admin-api.service';
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-md-none px-3 pb-3" *ngIf="!loading()">
+          <div class="mobile-card" *ngFor="let row of records()">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <span class="vehicle-no">{{row.vehiclenumber}}</span>
+                <div class="text-muted small">{{row.ownername}}</div>
+              </div>
+              <span *ngIf="row.outtime === '-'" class="status-badge status-parked"><i class="bi bi-record-fill animate-pulse"></i> Parked</span>
+              <span *ngIf="row.outtime !== '-' && row.paymentStatus !== 'completed'" class="status-badge status-pending">Pending</span>
+              <span *ngIf="row.paymentStatus === 'completed'" class="status-badge status-completed">Paid</span>
+            </div>
+            <div class="mobile-card-row">
+              <span class="mc-label">Date</span><span>{{row.date}}</span>
+            </div>
+            <div class="mobile-card-row">
+              <span class="mc-label">Time</span><span>{{row.intime}} — {{row.outtime === '-' ? 'Active' : row.outtime}}</span>
+            </div>
+            <div class="mobile-card-row">
+              <span class="mc-label">Type</span>
+              <span *ngIf="row.type === '2W'" class="text-primary fw-bold small"><i class="fa-solid fa-motorcycle me-1"></i>2W</span>
+              <span *ngIf="row.type === '4W'" class="text-success fw-bold small"><i class="fa-solid fa-car me-1"></i>4W</span>
+            </div>
+            <div class="mobile-card-row">
+              <span class="mc-label">Amount</span><span class="amount-text">₹{{row.amount ?? '0'}}</span>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <button *ngIf="row.outtime !== '-'" class="btn btn-sm btn-outline-success flex-grow-1" (click)="downloadBill(row)"><i class="fa-solid fa-download me-1"></i>Bill</button>
+              <button *ngIf="row.outtime === '-'" class="btn btn-sm btn-danger flex-grow-1" (click)="exitVehicle(row._id)"><i class="fa-solid fa-arrow-right-from-bracket me-1"></i>Exit</button>
+              <button class="btn btn-sm btn-outline-danger" (click)="deleteRecord(row._id)"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -124,6 +156,10 @@ import { AdminApiService } from '../../services/admin-api.service';
     .source-walkin { background:#f5f3ff; color:#7c3aed; }
     @keyframes pulse-red { 0%,100%{opacity:1} 50%{opacity:0.3} }
     .animate-pulse { animation:pulse-red 2s infinite; color:#ef4444; }
+    .mobile-card { background:white; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    .mobile-card-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #f8fafc; font-size:0.85rem; }
+    .mobile-card-row:last-of-type { border-bottom:none; }
+    .mc-label { color:#94a3b8; font-weight:600; font-size:0.78rem; text-transform:uppercase; }
   `]
 })
 export class ParkHistoryComponent implements OnInit {

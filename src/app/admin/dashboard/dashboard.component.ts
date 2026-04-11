@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AdminApiService } from '../../services/admin-api.service';
+import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -15,9 +16,14 @@ import { AdminApiService } from '../../services/admin-api.service';
       <h1 class="dash-title">Dashboard</h1>
       <p class="dash-sub mb-0">{{data()?.parkingName || '...'}} &nbsp;·&nbsp; {{currentDate}}</p>
     </div>
-    <a routerLink="/admin/park-vehicle" class="btn btn-primary px-4 shadow-sm">
-      <i class="bi bi-plus-lg me-2"></i>New Entry
-    </a>
+    <div class="d-flex gap-2 align-items-center">
+      <button class="btn btn-outline-secondary btn-sm px-3" (click)="load()" [disabled]="loading()">
+        <i class="bi bi-arrow-clockwise" [class.spin]="loading()"></i>
+      </button>
+      <a routerLink="/admin/park-vehicle" class="btn btn-primary px-4 shadow-sm">
+        <i class="bi bi-plus-lg me-2"></i>New Entry
+      </a>
+    </div>
   </div>
 
   <div *ngIf="loading()" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
@@ -191,6 +197,8 @@ import { AdminApiService } from '../../services/admin-api.service';
     .dash-header { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; }
     .dash-title { font-size:1.6rem; font-weight:800; color:#0f172a; margin:0; }
     .dash-sub { color:#94a3b8; font-size:0.85rem; }
+    .spin { animation: spin 1s linear infinite; display:inline-block; }
+    @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
 
     /* Stat Cards */
     .scard { background:white; border-radius:18px; padding:20px; box-shadow:0 2px 12px rgba(0,0,0,0.06); position:relative; overflow:hidden; height:100%; }
@@ -243,14 +251,26 @@ import { AdminApiService } from '../../services/admin-api.service';
     .status-dot.done { background:#dcfce7; color:#166534; }
   `]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   currentDate = new Date().toLocaleDateString('en-GB', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
   data = signal<any>(null);
   loading = signal(true);
+  private refreshSub!: Subscription;
 
   constructor(private api: AdminApiService) {}
 
   ngOnInit() {
+    this.load();
+    // Auto-refresh every 30 seconds
+    this.refreshSub = interval(30000).subscribe(() => this.load());
+  }
+
+  ngOnDestroy() {
+    this.refreshSub?.unsubscribe();
+  }
+
+  load() {
+    this.loading.set(true);
     this.api.getDashboard().subscribe({
       next: (res) => { this.data.set(res.data); this.loading.set(false); },
       error: () => this.loading.set(false)

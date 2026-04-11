@@ -309,22 +309,31 @@ export class ParkVehicleComponent implements OnInit {
     const [inH, inM] = row.intime.split(':').map(Number);
     const outH = now.getHours(), outM = now.getMinutes();
     const dur = Math.max(1, Math.ceil(((outH * 60 + outM) - (inH * 60 + inM)) / 60));
-    const rate = parseInt(this.parkingRate() || '20');
-    const amount = dur * rate;
     this.checkoutTime.set(`${String(outH).padStart(2,'0')}:${String(outM).padStart(2,'0')}`);
     this.checkoutDuration.set(dur);
-    this.checkoutAmount.set(amount);
     this.paymentDone.set(false);
     this.checkoutRecord.set({ ...row, _pendingExit: true });
-    // Generate UPI QR
-    if (this.parkingUpi()) {
-      const upiUrl = `upi://pay?pa=${this.parkingUpi()}&pn=${encodeURIComponent(this.parkingUpiName())}&am=${amount}&cu=INR&tn=${encodeURIComponent('Parking Fee - ' + row.vehiclenumber)}`;
-      const QRCode = (await import('qrcode'));
-      const qrDataUrl = await QRCode.toDataURL(upiUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } });
-      this.generatedQr.set(qrDataUrl);
-    } else {
-      this.generatedQr.set('');
-    }
+    this.generatedQr.set('');
+
+    // Always fetch fresh parking data to get latest UPI
+    this.api.getMyParking().subscribe({
+      next: async (res) => {
+        const upi = res.data?.upiId || '';
+        const upiName = res.data?.upiName || res.data?.parkingname || 'AuraPark';
+        const rate = parseInt(res.data?.hourrate || '20');
+        const amount = dur * rate;
+        this.parkingUpi.set(upi);
+        this.parkingUpiName.set(upiName);
+        this.parkingRate.set(String(rate));
+        this.checkoutAmount.set(amount);
+        if (upi) {
+          const upiUrl = `upi://pay?pa=${upi}&pn=${encodeURIComponent(upiName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Parking Fee - ' + row.vehiclenumber)}`;
+          const QRCode = (await import('qrcode'));
+          const qrDataUrl = await QRCode.toDataURL(upiUrl, { width: 300, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } });
+          this.generatedQr.set(qrDataUrl);
+        }
+      }
+    });
   }
 
   confirmPayment() {

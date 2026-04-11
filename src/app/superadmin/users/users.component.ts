@@ -37,7 +37,7 @@ interface User {
 
   <!-- Table -->
   <div class="main-card" *ngIf="!loading()">
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
       <table class="table align-middle mb-0">
         <thead>
           <tr>
@@ -62,36 +62,46 @@ interface User {
                 </div>
               </div>
             </td>
-            <td>
-              <div class="small">
-                <div><i class="fa-solid fa-phone text-muted me-1"></i>{{user.mobile || '—'}}</div>
-              </div>
-            </td>
+            <td><div class="small"><div><i class="fa-solid fa-phone text-muted me-1"></i>{{user.mobile || '—'}}</div></div></td>
             <td><span class="text-muted small">{{user.city || '—'}}</span></td>
             <td><span class="text-muted small">{{user.createdAt | date:'dd MMM yyyy'}}</span></td>
-            <td>
-              <span class="role-badge" [class.role-admin]="user.role==='admin'" [class.role-user]="user.role==='user'">
-                {{user.role}}
-              </span>
-            </td>
+            <td><span class="role-badge" [class.role-admin]="user.role==='admin'" [class.role-user]="user.role==='user'">{{user.role}}</span></td>
             <td class="text-center">
               <div class="d-flex justify-content-center gap-1">
-                <button class="btn-icon btn-edit" (click)="openEditModal(user)" title="Edit">
-                  <i class="fa-solid fa-pen"></i>
-                </button>
-                <button class="btn-icon btn-del" (click)="deleteUser(user._id, user.name)" title="Delete">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
+                <button class="btn-icon btn-edit" (click)="openEditModal(user)"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn-icon btn-del" (click)="deleteUser(user._id, user.name)"><i class="fa-solid fa-trash"></i></button>
               </div>
             </td>
           </tr>
           <tr *ngIf="filtered().length === 0">
-            <td colspan="7" class="text-center py-5 text-muted">
-              <i class="fa-solid fa-users-slash d-block fs-2 mb-2"></i>No users found.
-            </td>
+            <td colspan="7" class="text-center py-5 text-muted"><i class="fa-solid fa-users-slash d-block fs-2 mb-2"></i>No users found.</td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-md-none p-3">
+      <div class="u-mobile-card" *ngFor="let user of filtered()">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="user-initial">{{user.name.charAt(0).toUpperCase()}}</div>
+          <div class="flex-grow-1">
+            <div class="fw-bold text-dark">{{user.name}}</div>
+            <div class="text-muted small">{{user.email}}</div>
+          </div>
+          <span class="role-badge" [class.role-admin]="user.role==='admin'" [class.role-user]="user.role==='user'">{{user.role}}</span>
+        </div>
+        <div class="u-card-row"><span class="uc-label">Mobile</span><span>{{user.mobile || '—'}}</span></div>
+        <div class="u-card-row"><span class="uc-label">City</span><span>{{user.city || '—'}}</span></div>
+        <div class="u-card-row"><span class="uc-label">Joined</span><span>{{user.createdAt | date:'dd MMM yyyy'}}</span></div>
+        <div class="d-flex gap-2 mt-3">
+          <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="openEditModal(user)"><i class="fa-solid fa-pen me-1"></i>Edit</button>
+          <button class="btn btn-sm btn-outline-danger flex-grow-1" (click)="deleteUser(user._id, user.name)"><i class="fa-solid fa-trash me-1"></i>Delete</button>
+        </div>
+      </div>
+      <div *ngIf="filtered().length === 0" class="text-center text-muted py-4">
+        <i class="fa-solid fa-users-slash d-block fs-2 mb-2"></i>No users found.
+      </div>
     </div>
   </div>
 </div>
@@ -204,6 +214,10 @@ interface User {
     .info-row-view { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f1f5f9; font-size:0.9rem; }
     .info-row-view:last-child { border-bottom:none; }
     .info-row-view span:first-child { color:#94a3b8; font-weight:600; font-size:0.8rem; text-transform:uppercase; }
+    .u-mobile-card { background:#f8fafc; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; }
+    .u-card-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9; font-size:0.85rem; }
+    .u-card-row:last-of-type { border-bottom:none; }
+    .uc-label { color:#94a3b8; font-weight:600; font-size:0.78rem; text-transform:uppercase; }
   `]
 })
 export class UsersComponent implements OnInit {

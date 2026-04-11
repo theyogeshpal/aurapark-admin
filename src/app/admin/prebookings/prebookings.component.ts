@@ -27,7 +27,7 @@ import { AdminApiService } from '../../services/admin-api.service';
           <p class="text-muted mt-3 mb-0">No pending pre-bookings</p>
         </div>
 
-        <div class="table-responsive px-2" *ngIf="!loading() && bookings().length > 0">
+        <div class="table-responsive px-2 d-none d-md-block" *ngIf="!loading() && bookings().length > 0">
           <table class="table table-custom mb-0">
             <thead>
               <tr>
@@ -77,6 +77,29 @@ import { AdminApiService } from '../../services/admin-api.service';
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile Cards -->
+        <div class="d-md-none px-3 pb-3" *ngIf="!loading() && bookings().length > 0">
+          <div class="mobile-card" *ngFor="let b of bookings()">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div>
+                <span class="vehicle-no">{{b.vehicleNumber || '—'}}</span>
+                <div class="ref-badge mt-1">{{b.bookingRef}}</div>
+              </div>
+              <span class="dur-badge">{{b.duration}} hr</span>
+            </div>
+            <div class="mobile-card-row"><span class="mc-label">Date</span><span>{{b.date}}</span></div>
+            <div class="mobile-card-row">
+              <span class="mc-label">Slot</span>
+              <span class="text-success fw-bold small">{{formatTime(b.time)}} → <span class="text-danger">{{formatTime(b.endTime)}}</span></span>
+            </div>
+            <div class="mobile-card-row"><span class="mc-label">Amount</span><span class="amount-text">₹{{b.totalPrice}}</span></div>
+            <button class="btn-checkin w-100 mt-3" (click)="checkIn(b._id)" [disabled]="checkingIn() === b._id">
+              <span *ngIf="checkingIn() !== b._id"><i class="fa-solid fa-right-to-bracket me-1"></i>Check In</span>
+              <span *ngIf="checkingIn() === b._id"><i class="fa-solid fa-spinner fa-spin me-1"></i>Processing...</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -94,6 +117,10 @@ import { AdminApiService } from '../../services/admin-api.service';
     .btn-checkin { background:linear-gradient(135deg,#f59e0b,#d97706); color:white; border:none; border-radius:10px; padding:8px 16px; font-size:0.82rem; font-weight:700; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
     .btn-checkin:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 4px 12px rgba(245,158,11,0.35); }
     .btn-checkin:disabled { opacity:0.6; cursor:not-allowed; }
+    .mobile-card { background:white; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    .mobile-card-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #f8fafc; font-size:0.85rem; }
+    .mobile-card-row:last-of-type { border-bottom:none; }
+    .mc-label { color:#94a3b8; font-weight:600; font-size:0.78rem; text-transform:uppercase; }
   `]
 })
 export class PrebookingsComponent implements OnInit {
