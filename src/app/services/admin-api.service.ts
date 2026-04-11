@@ -47,6 +47,9 @@ export class AdminApiService {
   deleteNotification(id: string) { return this.http.delete<any>(`${BASE}/notifications/${id}`, this.sh); }
   getAdminNotifications() { return this.http.get<any>(`${BASE}/notifications/admin`, this.ah); }
   markAdminNotifRead(id: string) { return this.http.put<any>(`${BASE}/notifications/admin/${id}/read`, {}, this.ah); }
+  getSaNotifications() { return this.http.get<any>(`${BASE}/notifications/superadmin`, this.sh); }
+  markSaNotifRead(id: string) { return this.http.put<any>(`${BASE}/notifications/superadmin/${id}/read`, {}, this.sh); }
+  markAllSaNotifRead() { return this.http.put<any>(`${BASE}/notifications/superadmin/read-all`, {}, this.sh); }
   getAllUsers() { return this.http.get<any>(`${BASE}/superadmin/users`, this.sh); }
   addUser(data: any) { return this.http.post<any>(`${BASE}/superadmin/users`, data, this.sh); }
   updateUser(id: string, data: any) { return this.http.put<any>(`${BASE}/superadmin/users/${id}`, data, this.sh); }

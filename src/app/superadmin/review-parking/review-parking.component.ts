@@ -20,7 +20,7 @@ import { AdminApiService } from '../../services/admin-api.service';
   <div *ngIf="loading()" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
 
   <div class="table-container" *ngIf="!loading()">
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
       <table class="table align-middle table-hover">
         <thead>
           <tr>
@@ -73,6 +73,31 @@ import { AdminApiService } from '../../services/admin-api.service';
         </tbody>
       </table>
     </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-md-none">
+      <div *ngFor="let row of spots()" class="rp-card">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-bold text-dark">{{row.parkingname}}</div>
+            <div class="text-muted small">{{row.ownername}}</div>
+          </div>
+          <span class="badge badge-soft text-dark">₹{{row.hourrate}}/hr</span>
+        </div>
+        <div class="rp-row"><span class="rp-label">Email</span><span class="small">{{row.email}}</span></div>
+        <div class="rp-row"><span class="rp-label">Mobile</span><span class="small">{{row.mobile}}</span></div>
+        <div class="rp-row"><span class="rp-label">Location</span><span class="small">{{row.city}}, {{row.state}}</span></div>
+        <div class="rp-row"><span class="rp-label">Hours</span><span class="small">{{row.operatinghours}}</span></div>
+        <div class="d-flex gap-2 mt-3">
+          <a class="btn btn-sm btn-outline-primary flex-grow-1" [href]="'tel:'+row.mobile"><i class="fa-solid fa-phone me-1"></i>Call</a>
+          <button class="btn btn-sm btn-success flex-grow-1" (click)="verifySpot(row._id)"><i class="fa-solid fa-check me-1"></i>Approve</button>
+          <button class="btn btn-sm btn-danger flex-grow-1" (click)="deleteSpot(row._id)"><i class="fa-solid fa-xmark me-1"></i>Reject</button>
+        </div>
+      </div>
+      <div *ngIf="spots().length === 0" class="text-center py-5 text-muted">
+        <i class="fa-solid fa-check-circle fs-2 d-block mb-2 text-success"></i>No pending requests!
+      </div>
+    </div>
   </div>
 </div>
   `,
@@ -83,6 +108,10 @@ import { AdminApiService } from '../../services/admin-api.service';
     .badge-soft { background-color:#eef2ff; color:#4338ca; border:1px solid #e0e7ff; padding:5px 10px; }
     .btn-action { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; transition:0.2s; }
     .table thead th { background-color:#f8f9fa; color:#495057; text-transform:uppercase; font-size:0.75rem; letter-spacing:0.05em; border:none; }
+    .rp-card { background:white; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    .rp-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f8fafc; font-size:0.85rem; }
+    .rp-row:last-of-type { border-bottom:none; }
+    .rp-label { color:#94a3b8; font-weight:600; font-size:0.75rem; text-transform:uppercase; }
   `]
 })
 export class ReviewParkingComponent implements OnInit {

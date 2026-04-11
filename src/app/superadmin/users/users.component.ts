@@ -16,17 +16,17 @@ interface User {
 <div class="container-fluid py-4">
 
   <!-- Header -->
-  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
     <div>
       <h1 class="h3 fw-bold mb-1">All Users</h1>
       <p class="text-muted small mb-0">Total <strong>{{filtered().length}}</strong> users registered</p>
     </div>
-    <div class="d-flex gap-2">
-      <div class="search-box">
+    <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-sm-auto">
+      <div class="search-box flex-grow-1">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input type="text" [(ngModel)]="searchQ" (input)="onSearch()" placeholder="Search by name or email...">
       </div>
-      <button class="btn btn-primary btn-sm px-3" (click)="openAddModal()">
+      <button class="btn btn-primary px-3" (click)="openAddModal()">
         <i class="fa-solid fa-user-plus me-1"></i> Add User
       </button>
     </div>
@@ -85,9 +85,9 @@ interface User {
       <div class="u-mobile-card" *ngFor="let user of filtered()">
         <div class="d-flex align-items-center gap-3 mb-2">
           <div class="user-initial">{{user.name.charAt(0).toUpperCase()}}</div>
-          <div class="flex-grow-1">
-            <div class="fw-bold text-dark">{{user.name}}</div>
-            <div class="text-muted small">{{user.email}}</div>
+          <div class="flex-grow-1 overflow-hidden">
+            <div class="fw-bold text-dark text-truncate">{{user.name}}</div>
+            <div class="text-muted small text-truncate">{{user.email}}</div>
           </div>
           <span class="role-badge" [class.role-admin]="user.role==='admin'" [class.role-user]="user.role==='user'">{{user.role}}</span>
         </div>
@@ -178,12 +178,12 @@ interface User {
 
     .search-box { display:flex; align-items:center; background:white; border:1.5px solid #e2e8f0; border-radius:10px; padding:0 14px; gap:10px; }
     .search-box i { color:#94a3b8; font-size:0.85rem; }
-    .search-box input { border:none; outline:none; padding:9px 0; font-size:0.9rem; width:220px; color:#1e293b; background:transparent; }
+    .search-box input { border:none; outline:none; padding:9px 0; font-size:0.9rem; width:100%; min-width:0; color:#1e293b; background:transparent; }
 
     .user-initial { width:40px; height:40px; border-radius:12px; background:linear-gradient(135deg,#556ee6,#6f42c1); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1rem; flex-shrink:0; }
     .user-initial-lg { width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg,#556ee6,#6f42c1); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:1.8rem; }
 
-    .role-badge { padding:4px 12px; border-radius:50px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
+    .role-badge { padding:4px 12px; border-radius:50px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; flex-shrink:0; }
     .role-user { background:#eff6ff; color:#1d4ed8; }
     .role-admin { background:#fef3c7; color:#92400e; }
 

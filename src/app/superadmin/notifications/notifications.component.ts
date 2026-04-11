@@ -65,11 +65,11 @@ import { AdminApiService } from '../../services/admin-api.service';
         </div>
 
         <div *ngFor="let n of notifications()" class="notif-item">
-          <div class="d-flex justify-content-between align-items-start">
-            <div class="flex-grow-1">
-              <div class="d-flex align-items-center gap-2 mb-1">
-                <span class="notif-title">{{n.title}}</span>
-                <span class="target-badge" [class.badge-admin]="n.target==='admin'" [class.badge-user]="n.target==='user'" [class.badge-both]="n.target==='both'">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                <span class="notif-title text-truncate">{{n.title}}</span>
+                <span class="target-badge flex-shrink-0" [class.badge-admin]="n.target==='admin'" [class.badge-user]="n.target==='user'" [class.badge-both]="n.target==='both'">
                   <i class="fa-solid me-1" [class.fa-user-tie]="n.target==='admin'" [class.fa-users]="n.target==='user'" [class.fa-globe]="n.target==='both'"></i>
                   {{n.target === 'both' ? 'All' : n.target}}
                 </span>
@@ -77,7 +77,7 @@ import { AdminApiService } from '../../services/admin-api.service';
               <p class="notif-msg mb-1">{{n.message}}</p>
               <small class="text-muted">{{n.createdAt | date:'dd MMM yyyy, hh:mm a'}}</small>
             </div>
-            <button class="btn-del-notif ms-3" (click)="deleteNotif(n._id)" title="Delete">
+            <button class="btn-del-notif flex-shrink-0" (click)="deleteNotif(n._id)" title="Delete">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -90,6 +90,7 @@ import { AdminApiService } from '../../services/admin-api.service';
   styles: [`
     .notif-form-card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
     .notif-history-card { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-height: 600px; overflow-y: auto; }
+    @media (max-width: 576px) { .notif-history-card { max-height: none; padding: 20px 16px; } .notif-form-card { padding: 20px 16px; } }
     .field-label { font-size: 0.78rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
     .field-input { width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 0.9rem; color: #1e293b; outline: none; transition: border-color 0.2s; resize: none; }
     .field-input:focus { border-color: #556ee6; }

@@ -65,7 +65,7 @@ import { AdminApiService } from '../../services/admin-api.service';
     </div>
 
     <!-- Mobile Cards -->
-    <div class="d-md-none p-3">
+    <div class="d-md-none p-0">
       <div class="p-mobile-card" *ngFor="let row of parkings()">
         <div class="fw-bold text-dark mb-1" style="font-size:1rem">{{row.parkingname}}</div>
         <div class="text-muted small mb-2">{{row.ownername}} &nbsp;&middot;&nbsp; {{row.mobile}}</div>
@@ -96,6 +96,7 @@ import { AdminApiService } from '../../services/admin-api.service';
     .sr-text { font-family:'Arial Black',sans-serif; color:#eaecf4; font-size:2.5rem; line-height:1; }
     .btn-action { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:8px; }
     .p-mobile-card { background:white; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    @media (max-width: 768px) { .main-card { padding:0rem; } }
   `]
 })
 export class ParkingsComponent implements OnInit {

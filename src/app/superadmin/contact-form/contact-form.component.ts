@@ -15,7 +15,7 @@ import { AdminApiService } from '../../services/admin-api.service';
   <div *ngIf="loading()" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
 
   <div class="feedback-card" *ngIf="!loading()">
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
       <table class="table table-hover align-middle">
         <thead class="text-center">
           <tr>
@@ -56,6 +56,29 @@ import { AdminApiService } from '../../services/admin-api.service';
         </tbody>
       </table>
     </div>
+
+    <!-- Mobile Cards -->
+    <div class="d-md-none">
+      <div *ngFor="let row of feedbacks()" class="cf-card">
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="user-avatar">{{row.name.charAt(0).toUpperCase()}}</div>
+          <div>
+            <div class="fw-bold text-dark">{{row.name}}</div>
+            <div class="text-muted small">{{row.email}}</div>
+          </div>
+        </div>
+        <div class="cf-row"><span class="cf-label">Mobile</span><span class="small">{{row.mobile || '—'}}</span></div>
+        <div class="cf-msg">
+          <i class="fa-solid fa-quote-left text-primary opacity-25 me-1"></i>{{row.message}}
+        </div>
+        <div class="text-end mt-2">
+          <button class="btn btn-sm btn-outline-danger" (click)="deleteFeedback(row.id)">
+            <i class="fa-solid fa-trash me-1"></i>Delete
+          </button>
+        </div>
+      </div>
+      <div *ngIf="feedbacks().length === 0" class="text-center py-5 text-muted">No feedback records found.</div>
+    </div>
   </div>
 </div>
   `,
@@ -65,6 +88,10 @@ import { AdminApiService } from '../../services/admin-api.service';
     .user-avatar { width:40px; height:40px; background:#6610f2; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; }
     .table thead th { border-bottom:2px solid #f1f1f1; color:#6c757d; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; }
     .sr-num { color:#dee2e6; font-weight:800; font-size:1.2rem; }
+    .cf-card { background:white; border:1px solid #f1f5f9; border-radius:14px; padding:16px; margin-bottom:12px; box-shadow:0 2px 8px rgba(0,0,0,0.04); }
+    .cf-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f8fafc; font-size:0.85rem; }
+    .cf-label { color:#94a3b8; font-weight:600; font-size:0.75rem; text-transform:uppercase; }
+    .cf-msg { background:#f8fafc; border-radius:10px; padding:10px 12px; font-size:0.85rem; color:#475569; font-style:italic; margin-top:10px; line-height:1.5; }
   `]
 })
 export class ContactFormComponent implements OnInit {

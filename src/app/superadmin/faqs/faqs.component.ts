@@ -60,9 +60,9 @@ import { AdminApiService } from '../../services/admin-api.service';
         </div>
 
         <div *ngFor="let faq of faqs(); let i = index" class="faq-item">
-          <div class="d-flex justify-content-between align-items-start gap-3">
-            <div class="flex-grow-1">
-              <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="flex-grow-1 overflow-hidden">
+              <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
                 <span class="order-badge">{{faq.order || i+1}}</span>
                 <span class="faq-status" [class.active]="faq.active" [class.inactive]="!faq.active">
                   {{faq.active ? 'Active' : 'Hidden'}}
@@ -71,8 +71,8 @@ import { AdminApiService } from '../../services/admin-api.service';
               <div class="faq-q">{{faq.question}}</div>
               <div class="faq-a">{{faq.answer}}</div>
             </div>
-            <div class="d-flex gap-1 flex-shrink-0">
-              <button class="btn btn-sm btn-outline-warning" (click)="toggleActive(faq)" title="Toggle visibility">
+            <div class="faq-actions flex-shrink-0">
+              <button class="btn btn-sm btn-outline-warning" (click)="toggleActive(faq)">
                 <i class="fa-solid fa-{{faq.active ? 'eye-slash' : 'eye'}}"></i>
               </button>
               <button class="btn btn-sm btn-outline-primary" (click)="startEdit(faq)">
@@ -94,12 +94,14 @@ import { AdminApiService } from '../../services/admin-api.service';
     .faq-list-card { background:white; border-radius:16px; padding:24px; box-shadow:0 2px 12px rgba(0,0,0,0.06); }
     .faq-item { padding:16px; border-radius:12px; border:1px solid #f1f5f9; margin-bottom:12px; transition:box-shadow 0.2s; }
     .faq-item:hover { box-shadow:0 4px 12px rgba(0,0,0,0.06); }
-    .order-badge { background:#eff6ff; color:#1d4ed8; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; }
-    .faq-status { font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; }
+    .order-badge { background:#eff6ff; color:#1d4ed8; font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; white-space:nowrap; }
+    .faq-status { font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:20px; white-space:nowrap; }
     .faq-status.active { background:#dcfce7; color:#166534; }
     .faq-status.inactive { background:#f1f5f9; color:#94a3b8; }
-    .faq-q { font-weight:700; color:#1e293b; font-size:0.92rem; margin-bottom:6px; }
-    .faq-a { font-size:0.82rem; color:#64748b; line-height:1.6; }
+    .faq-q { font-weight:700; color:#1e293b; font-size:0.92rem; margin-bottom:6px; word-break:break-word; }
+    .faq-a { font-size:0.82rem; color:#64748b; line-height:1.6; word-break:break-word; }
+    .faq-actions { display:flex; flex-direction:column; gap:4px; }
+    @media (min-width:576px) { .faq-actions { flex-direction:row; gap:4px; } }
   `]
 })
 export class FaqsComponent implements OnInit {
