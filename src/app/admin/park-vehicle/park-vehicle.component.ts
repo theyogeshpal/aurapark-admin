@@ -65,7 +65,9 @@ import { AdminApiService } from '../../services/admin-api.service';
         </div>
       </div>
       <div *ngIf="loading()" class="text-center py-4"><div class="spinner-border text-primary"></div></div>
-      <div class="table-responsive" *ngIf="!loading()">
+
+      <!-- Desktop Table -->
+      <div class="table-responsive d-none d-md-block" *ngIf="!loading()">
         <table class="table">
           <thead>
             <tr>
@@ -109,6 +111,36 @@ import { AdminApiService } from '../../services/admin-api.service';
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="d-md-none" *ngIf="!loading()">
+        <div *ngFor="let row of activeVehicles()" class="slot-card">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <span [class]="row.type === '2W' ? 'badge-2w' : 'badge-4w'">
+                <i [class]="row.type === '2W' ? 'fa-solid fa-motorcycle' : 'fa-solid fa-car'"></i>
+              </span>
+              <div>
+                <div class="fw-bold text-dark">{{row.vehiclenumber}}</div>
+                <div class="small text-muted">{{row.ownername}}</div>
+              </div>
+            </div>
+            <span *ngIf="row.source === 'online'" class="source-badge online"><i class="fa-solid fa-globe me-1"></i>Online</span>
+            <span *ngIf="row.source !== 'online'" class="source-badge walkin"><i class="fa-solid fa-person-walking me-1"></i>Walk-in</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="small text-muted">In: <span class="fw-semibold text-dark">{{row.intime}}</span></div>
+            <div class="small text-muted">Amt: <span class="fw-semibold text-success">{{row.amount ? '₹'+row.amount : '—'}}</span></div>
+            <button class="btn btn-outline-danger btn-sm px-3 rounded-pill" (click)="openCheckout(row)" [disabled]="exiting() === row._id">
+              <span *ngIf="exiting() !== row._id">Checkout</span>
+              <span *ngIf="exiting() === row._id"><i class="fa-solid fa-spinner fa-spin"></i></span>
+            </button>
+          </div>
+        </div>
+        <div *ngIf="activeVehicles().length === 0" class="text-center py-4 text-muted">
+          <i class="bi bi-info-circle d-block fs-2 mb-2"></i>No vehicles currently in the lot.
+        </div>
       </div>
     </div>
   </div>
@@ -215,6 +247,7 @@ import { AdminApiService } from '../../services/admin-api.service';
     .source-badge.online { background:#eff6ff; color:#1d4ed8; }
     .source-badge.walkin { background:#f0fdf4; color:#15803d; }
     .form-label { font-weight:600; color:#495057; font-size:0.9rem; }
+    .slot-card { background:#f8fafc; border:1px solid #f1f5f9; border-radius:14px; padding:14px; margin-bottom:10px; }
 
     /* Modal */
     .modal-backdrop-custom { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1040; }

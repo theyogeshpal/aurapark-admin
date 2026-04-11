@@ -149,7 +149,9 @@ import { Subscription, interval } from 'rxjs';
         </div>
         <a routerLink="/admin/park-history" class="btn btn-sm btn-outline-primary">View All</a>
       </div>
-      <div class="table-responsive">
+
+      <!-- Desktop Table -->
+      <div class="table-responsive d-none d-md-block">
         <table class="table act-table mb-0">
           <thead>
             <tr>
@@ -186,6 +188,28 @@ import { Subscription, interval } from 'rxjs';
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="d-md-none p-3">
+        <div *ngFor="let r of data()!.recentActivity" class="act-mobile-card">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="font-monospace fw-bold text-dark">{{r.vehiclenumber}}</span>
+            <span class="status-dot" [class.active]="r.outtime==='-'" [class.done]="r.outtime!=='-'">
+              {{r.outtime === '-' ? 'Parked' : 'Exited'}}
+            </span>
+          </div>
+          <div class="text-muted small mb-2">{{r.ownername}}</div>
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="type-badge" [class.bike]="r.type==='2W'" [class.car]="r.type==='4W'">
+              <i class="fa-solid" [class.fa-motorcycle]="r.type==='2W'" [class.fa-car]="r.type==='4W'"></i>
+              {{r.type}}
+            </span>
+            <span class="text-muted small">{{r.date}} &nbsp; {{r.intime}}</span>
+            <span class="fw-bold text-success small">{{r.amount ? '₹'+r.amount : '—'}}</span>
+          </div>
+        </div>
+        <div *ngIf="!data()!.recentActivity?.length" class="text-center text-muted py-3 small">No activity yet</div>
       </div>
     </div>
 
@@ -249,6 +273,7 @@ import { Subscription, interval } from 'rxjs';
     .status-dot { padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
     .status-dot.active { background:#fef9c3; color:#854d0e; }
     .status-dot.done { background:#dcfce7; color:#166534; }
+    .act-mobile-card { background:#f8fafc; border:1px solid #f1f5f9; border-radius:12px; padding:12px; margin-bottom:10px; }
   `]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
